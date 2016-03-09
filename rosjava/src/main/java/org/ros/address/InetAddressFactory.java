@@ -86,7 +86,7 @@ public class InetAddressFactory {
     InetAddress[] allAddressesByName;
     try {
       allAddressesByName = org.xbill.DNS.Address.getAllByName(host);
-    } catch (UnknownHostException unused) {
+    } catch (Throwable unused) { // could also be NoClassDefFoundError when org.xbill.DNS is not available on classpath
       try {
         allAddressesByName = InetAddress.getAllByName(host);
       } catch (UnknownHostException e) {

@@ -38,6 +38,7 @@ jar {
     symbolicName = 'org.ros.rosjava'
     instruction 'Export-Package', '!org.ros.internal.*, org.ros.*'
     instruction 'Private-Package', 'org.ros.internal.*'
+    instruction 'Import-Package', 'org.xbill.DNS;resolution:=optional, *'
   }
 }
 
