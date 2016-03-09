@@ -16,8 +16,10 @@
 
 package org.ros.internal.node.server.master;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
+import java.net.URI;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,9 +38,10 @@ import org.ros.node.service.ServiceServer;
 import org.ros.node.topic.Publisher;
 import org.ros.node.topic.Subscriber;
 
-import java.net.URI;
-import java.util.Collection;
-import java.util.List;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multiset.Entry;
 
 /**
  * The {@link MasterServer} provides naming and registration services to the
@@ -416,14 +419,23 @@ public class MasterServer extends XmlRpcServer implements MasterRegistrationList
   private List<Object> getSystemStateServices() {
     List<Object> result = Lists.newArrayList();
 
+    HashMap<String, List<String>> services = Maps.newHashMap();
     for (ServiceRegistrationInfo service : masterRegistrationManager.getAllServices()) {
-      List<Object> topicInfo = Lists.newArrayList();
-      topicInfo.add(service.getServiceName().toString());
-      topicInfo.add(Lists.newArrayList(service.getServiceName().toString()));
-
-      result.add(topicInfo);
+      List<String> providers = services.get(service.getServiceName().toString());
+      if(providers==null){
+        providers = Lists.newArrayList();
+    	services.put(service.getServiceName().toString(), providers);  
+      }
+      providers.add(service.getNode().getNodeName().toString());
     }
 
+    for(String service : services.keySet()){
+	    List<Object> serviceInfo = Lists.newArrayList();
+	    serviceInfo.add(service);
+	    serviceInfo.add(services.get(service));
+	    result.add(serviceInfo);
+    }
+    
     return result;
   }
 

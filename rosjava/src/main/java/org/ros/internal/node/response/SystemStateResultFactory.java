@@ -16,17 +16,20 @@
 
 package org.ros.internal.node.response;
 
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-
-import org.ros.master.client.SystemState;
-import org.ros.master.client.TopicSystemState;
-
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import org.ros.master.client.ServiceSystemState;
+import org.ros.master.client.SystemState;
+import org.ros.master.client.TopicSystemState;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * A {@link ResultFactory} to take an object and turn it into a
@@ -42,6 +45,7 @@ public class SystemStateResultFactory implements ResultFactory<SystemState> {
 
 		Map<String, Set<String>> publisherMap = getPublishers(vals[0]);
 		Map<String, Set<String>> subscriberMap = getSubscribers(vals[1]);
+		Map<String, Set<String>> serviceMap = getServices(vals[2]);
 
 		Map<String, TopicSystemState> topics = Maps.newHashMap();
 
@@ -69,9 +73,15 @@ public class SystemStateResultFactory implements ResultFactory<SystemState> {
 					noPublishers, subscriberData.getValue()));
 		}
 
-		// TODO(keith): Get service state in here.
-
-		return new SystemState(topics.values());
+		List<ServiceSystemState> services = Lists.newArrayList();
+		for (Entry<String, Set<String>> serviceData : serviceMap
+				.entrySet()) {
+			// At this point there are no publishers with the same topic name
+			ServiceSystemState service = new ServiceSystemState(serviceData.getKey(), serviceData.getValue());
+			services.add(service);
+		}
+		
+		return new SystemState(topics.values(), services);
 	}
 
 	  /**
@@ -127,5 +137,33 @@ public class SystemStateResultFactory implements ResultFactory<SystemState> {
 		}
 
 		return topicToSubscribers;
+	}
+	
+	/**
+	 * Extract out the service data.
+	 * 
+	 * @param servicePairs
+	 *            the list of lists containing both a service name and a list of
+	 *            providers of that service
+	 * 
+	 * @return a mapping from service name to the set of service providers
+	 * 
+	 */
+	private Map<String, Set<String>> getServices(Object srvPairs) {
+		Map<String, Set<String>> serviceToProviders = Maps.newHashMap();
+
+		for (Object serviceData : Arrays.asList((Object[]) srvPairs)) {
+			String serviceName = (String) ((Object[]) serviceData)[0];
+
+			Set<String> providers =Sets.newHashSet();
+			Object[] providersData = (Object[])((Object[]) serviceData)[1];
+			for (Object provider : providersData) {
+				providers.add(provider.toString());
+			}
+
+			serviceToProviders.put(serviceName, providers);
+		}
+
+		return serviceToProviders;
 	}
 }
