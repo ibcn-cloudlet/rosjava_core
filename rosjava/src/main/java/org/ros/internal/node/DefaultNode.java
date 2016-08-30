@@ -430,6 +430,7 @@ public class DefaultNode implements ConnectedNode {
     registrar.shutdown();
     slaveServer.shutdown();
     signalOnShutdownComplete();
+    nodeListeners.shutdown();
   }
 
   @Override
