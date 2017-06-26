@@ -64,6 +64,10 @@ public class RetryingExecutorService {
     public void loop() throws InterruptedException {
       Future<Boolean> future = completionService.take();
       final Callable<Boolean> callable = callables.remove(future);
+      // callable can be null?
+      if(callable == null)
+    	  return;
+      
       boolean retry;
       try {
         retry = future.get();
