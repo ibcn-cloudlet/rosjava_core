@@ -59,6 +59,7 @@ public class DefaultPublisher<T> extends DefaultTopicParticipant implements Publ
   /**
    * Queue of all messages being published by this {@link Publisher}.
    */
+  private final ScheduledExecutorService executorService;
   private final OutgoingMessageQueue<T> outgoingMessageQueue;
   private final ListenerGroup<PublisherListener<T>> listeners;
   private final NodeIdentifier nodeIdentifier;
@@ -68,6 +69,7 @@ public class DefaultPublisher<T> extends DefaultTopicParticipant implements Publ
       MessageSerializer<T> serializer, MessageFactory messageFactory,
       ScheduledExecutorService executorService) {
     super(topicDeclaration);
+    this.executorService = executorService;
     this.nodeIdentifier = nodeIdentifier;
     this.messageFactory = messageFactory;
     outgoingMessageQueue = new OutgoingMessageQueue<T>(serializer, executorService);
@@ -109,7 +111,13 @@ public class DefaultPublisher<T> extends DefaultTopicParticipant implements Publ
   public void shutdown(long timeout, TimeUnit unit) {
     signalOnShutdown(timeout, unit);
     outgoingMessageQueue.shutdown();
-    listeners.shutdown();
+    // schedule cleanup of listeners on timeout
+    executorService.schedule(new Runnable() {
+		@Override
+		public void run() {
+			listeners.shutdown();
+		}
+	}, timeout, unit);
   }
 
   @Override

@@ -93,6 +93,7 @@ public class DefaultServiceClient<T, S> implements ServiceClient<T, S> {
   private final ConnectionHeader connectionHeader;
   private final TcpClientManager tcpClientManager;
   private final HandshakeLatch handshakeLatch;
+  private final ServiceClientHandshakeHandler<T, S> serviceClientHandshakeHandler;
 
   private TcpClient tcpClient;
 
@@ -119,7 +120,7 @@ public class DefaultServiceClient<T, S> implements ServiceClient<T, S> {
     connectionHeader.addField(ConnectionHeaderFields.PERSISTENT, "1");
     connectionHeader.merge(serviceDeclaration.toConnectionHeader());
     tcpClientManager = new TcpClientManager(executorService);
-    final ServiceClientHandshakeHandler<T, S> serviceClientHandshakeHandler =
+    serviceClientHandshakeHandler =
         new ServiceClientHandshakeHandler<T, S>(connectionHeader, responseListeners, deserializer,
             executorService);
     handshakeLatch = new HandshakeLatch();
@@ -147,6 +148,7 @@ public class DefaultServiceClient<T, S> implements ServiceClient<T, S> {
   @Override
   public void shutdown() {
     tcpClientManager.shutdown();
+    serviceClientHandshakeHandler.shutdown();
   }
 
   @Override

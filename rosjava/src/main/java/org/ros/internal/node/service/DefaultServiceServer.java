@@ -207,11 +207,12 @@ public class DefaultServiceServer<T, S> implements ServiceServer<T, S> {
 
   @Override
   public void shutdown() {
-    throw new UnsupportedOperationException();
+    listenerGroup.shutdown();
   }
 
   @Override
-  public void addListener(ServiceServerListener<T, S> listener) {
+  public void addListener(ServiceServerListener<T, S> listener) 
+  {
     listenerGroup.add(listener);
   }
 

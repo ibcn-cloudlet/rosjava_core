@@ -97,4 +97,8 @@ public abstract class BaseClientHandshakeHandler extends AbstractNamedChannelHan
       }
     });
   }
+  
+  public void shutdown(){
+	  clientHandshakeListeners.shutdown();
+  }
 }
